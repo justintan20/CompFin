@@ -11,6 +11,7 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -22,3 +23,5 @@ double ZCBClosedFormCIR(double r0, double r_bar, double sigma, double kappa, dou
 
 vector<double> normGenBM(int num, int seed);
 double power(double base, double p);
+//file output
+void toCSV(const vector<vector<double>>& data, const string& name);

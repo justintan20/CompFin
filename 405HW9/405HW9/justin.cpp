@@ -205,3 +205,16 @@ vector<double> normGenBM(int num, int seed){
     }
     return result;
 }
+
+
+//outputs double matrix to csv file
+void toCSV(const vector<vector<double>>& data, const string& name){
+    ofstream output(name);
+    for(auto i : data){
+        for(int j = 0; j < i.size() - 1; j++){
+            output << i[j] << ",";
+        }
+        output << i[i.size()-1] << endl;
+    }
+    output.close();
+}

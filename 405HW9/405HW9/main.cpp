@@ -23,6 +23,33 @@ int main(int argc, const char * argv[]) {
     
     cout << price << endl;
     
-    
+    vector<double> kappa_range;
+    vector<double> r_bar_range;
+    vector<double> sigma_range;
+    for(double k = 0.3; k <= 0.9; k += 0.1){
+        kappa_range.push_back(k);
+        r_bar_range.push_back(k/10.0);
+    }
+    for(double vol = 0.1; vol <= 0.2; vol += 0.01){
+        sigma_range.push_back(vol);
+    }
+    vector<double> prices_kappa;
+    for(double k : kappa_range){
+        prices_kappa.push_back(priceMBSNumerix(T_years, loan, wac, r0, k, r_bar, sigma, m));
+    }
+    vector<double> prices_rbar;
+    for(double r : r_bar_range){
+        prices_rbar.push_back(priceMBSNumerix(T_years, loan, wac, r0, kappa, r, sigma, m));
+    }
+    vector<double> prices_sigma;
+    for(double s : sigma_range){
+        prices_sigma.push_back(priceMBSNumerix(T_years, loan, wac, r0, kappa, r_bar, s, m));
+    }
+    vector<vector<double>> kappa_data{kappa_range,prices_kappa};
+    vector<vector<double>> rbar_data{r_bar_range,prices_rbar};
+    vector<vector<double>> sigma_data{sigma_range,prices_sigma};
+    toCSV(kappa_data, "kappa.csv");
+    toCSV(rbar_data, "rbar.csv");
+    toCSV(sigma_data, "sigma.csv");
     return 0;
 }
