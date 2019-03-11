@@ -12,7 +12,6 @@ double priceMBSNumerix(unsigned int T_years, double loan_amount, double wac, dou
     unsigned int numMonths = T_years * 12;
     double monthlyMortgageRate = wac / 12.0;
     double delta = 1/12.0;
-    double pmt = loan_amount*monthlyMortgageRate/(1.0-1.0/(power(1.0+monthlyMortgageRate, numMonths)));
     
     vector<vector<double>> interest_rates = ratesCIR(r0, kappa, r_bar, sigma, num_paths, numMonths, T_years);
     
@@ -21,10 +20,9 @@ double priceMBSNumerix(unsigned int T_years, double loan_amount, double wac, dou
         vector<double> ir_here = interest_rates[j];
         
         vector<double> PV_t{loan_amount};
-        vector<double> c_t{0};
         int currMonth = 0;
-        
-        
+        double price_here = 0;
+        double r_sum = 0;
         for(int i = 0; i < numMonths; i++){
             currMonth++;
             if(currMonth == 13){
@@ -33,37 +31,23 @@ double priceMBSNumerix(unsigned int T_years, double loan_amount, double wac, dou
             if(PV_t[i] <= 0){
                 break;
             }
+            r_sum += ir_here[i+1];
             double IP_t = PV_t[i]*monthlyMortgageRate;
-            double SP_t = pmt - IP_t;
+            double MP_t = PV_t[i]*monthlyMortgageRate/(1.0-1.0/power(1.0+monthlyMortgageRate, numMonths - i));
+            double SP_t = MP_t - IP_t;
             double r_tenyear = 0;
             double bondPrice = ZCBClosedFormCIR(ir_here[i], r_bar, sigma, kappa, 1, 0, 10);
             r_tenyear = -1.0/10.0*log(bondPrice);
             double CPR_t = cprNumerixCIR(r_tenyear, wac, loan_amount, PV_t[i], i+1, currMonth);
             double PP_t = (PV_t[i] - SP_t)*(1.0-power(1.0-CPR_t, 1.0/12.0));
             double remaining = PV_t[i] - SP_t - PP_t;
-            if(remaining < 0){
-                double extra = 0 - remaining;
-                PP_t -= extra;
-                remaining = 0;
-            }
-            double cash = pmt + PP_t;
+            double c_t = MP_t + PP_t;
             PV_t.push_back(remaining);
-            c_t.push_back(cash);
+            price_here += c_t*exp(-delta*r_sum);
+            
         }
         
-        long double price = 0;
-        int duration = c_t.size() - 1;
-        for(int i = 1; i <= duration; i++){
-            double cash_here = c_t[i];
-            double r_sum = 0;
-            for(int index = 1; index <= i; index++){
-                r_sum += ir_here[index];
-            }
-            double d_t = exp(-delta*r_sum);
-            double value = cash_here*d_t;
-            price += value;
-        }
-        price_sum += price;
+        price_sum += price_here;
     }
     double result = price_sum / num_paths;
     return result;
@@ -134,7 +118,7 @@ double cprNumerixCIR(double r, double mort_rate, double pv0, double pv_tMinus1, 
 
 
 vector<vector<double>> ratesCIR(double r0, double kappa, double r_bar, double sigma, int num_paths, int num_steps, int T_years){
-    vector<double> z = normGenBM(num_paths*num_steps, 12345);
+    vector<double> z = normGenBM(num_paths*num_steps, 111);
     int zIndex = 0;
     vector<vector<double>> allPaths;
     double delta = T_years / ((double)num_steps);
@@ -143,11 +127,13 @@ vector<vector<double>> ratesCIR(double r0, double kappa, double r_bar, double si
         for(int j = 0; j < num_steps; j++){
             double r_before = thisPath[j];
             double r_here = r_before+kappa*(r_bar-r_before)*delta;
-            r_here += sigma*sqrt(r_before)*sqrt(delta)*z[zIndex];
-            zIndex++;
-            if(r_here < 0){
-                r_here *= -1;
+            if(r_before < 0){
+                r_here += sigma*sqrt(-r_before)*sqrt(delta)*z[zIndex];
             }
+            else{
+                r_here += sigma*sqrt(r_before)*sqrt(delta)*z[zIndex];
+            }
+            zIndex++;
             thisPath.push_back(r_here);
         }
         allPaths.push_back(thisPath);

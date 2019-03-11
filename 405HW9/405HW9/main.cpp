@@ -51,5 +51,15 @@ int main(int argc, const char * argv[]) {
     toCSV(kappa_data, "kappa.csv");
     toCSV(rbar_data, "rbar.csv");
     toCSV(sigma_data, "sigma.csv");
+    cout << "All data are outputed as CSV files, all plots are in PDF." << endl;
+    
+    
+    cout << "\nProblem 2" << endl;
+    double marketPrice = 110000;
+    
+    
+    
+    
+    
     return 0;
 }
