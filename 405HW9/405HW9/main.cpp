@@ -21,7 +21,7 @@ int main(int argc, const char * argv[]) {
     //a
     double price = priceMBSNumerix(T_years, loan, wac, r0, kappa, r_bar, sigma, m);
 
-    cout << price << endl;
+    cout << "Price of Mortgage: " << price << endl;
 
     vector<double> kappa_range;
     vector<double> r_bar_range;
