@@ -18,6 +18,10 @@ using namespace std;
 double priceMBSNumerix(unsigned int T_years, double loan_amount, double wac, double r0, double kappa, double r_bar, double sigma, int num_paths);
 double cprNumerixCIR(double r, double mort_rate, double pv0, double pv_tMinus1, unsigned int curr_period, unsigned int month);
 
+double oas(unsigned int T_years, double loan_amount, double wac, double r0, double kappa, double r_bar, double sigma, int num_paths, double marketPrice);
+double priceMBSNumerixWithOAS(unsigned int T_years, double loan_amount, double wac, double r0, double kappa, double r_bar, double sigma, int num_paths, double oasSpread);
+
+
 vector<vector<double>> ratesCIR(double r0, double kappa, double r_bar, double sigma, int num_paths, int num_steps, int T_years);
 double ZCBClosedFormCIR(double r0, double r_bar, double sigma, double kappa, double faceValue, double t, double T);
 

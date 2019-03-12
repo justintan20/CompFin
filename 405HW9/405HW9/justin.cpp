@@ -53,6 +53,135 @@ double priceMBSNumerix(unsigned int T_years, double loan_amount, double wac, dou
     return result;
 }
 
+double oas(unsigned int T_years, double loan_amount, double wac, double r0, double kappa, double r_bar, double sigma, int num_paths, double marketPrice){
+    unsigned int numMonths = T_years * 12;
+    double monthlyMortgageRate = wac / 12.0;
+    double delta = 1/12.0;
+    
+    vector<vector<double>> interest_rates = ratesCIR(r0, kappa, r_bar, sigma, num_paths, numMonths, T_years);
+    vector<vector<double>> cashFlowMatrix;
+    for(int j = 0; j < num_paths; j++){
+        vector<double> ir_here = interest_rates[j];
+        vector<double> cashflow{0};
+        
+        vector<double> PV_t{loan_amount};
+        int currMonth = 0;
+        for(int i = 0; i < numMonths; i++){
+            currMonth++;
+            if(currMonth == 13){
+                currMonth = 1;
+            }
+            if(PV_t[i] <= 0){
+                break;
+            }
+            double IP_t = PV_t[i]*monthlyMortgageRate;
+            double MP_t = PV_t[i]*monthlyMortgageRate/(1.0-1.0/power(1.0+monthlyMortgageRate, numMonths - i));
+            double SP_t = MP_t - IP_t;
+            double r_tenyear = 0;
+            double bondPrice = ZCBClosedFormCIR(ir_here[i], r_bar, sigma, kappa, 1, 0, 10);
+            r_tenyear = -1.0/10.0*log(bondPrice);
+            double CPR_t = cprNumerixCIR(r_tenyear, wac, loan_amount, PV_t[i], i+1, currMonth);
+            double PP_t = (PV_t[i] - SP_t)*(1.0-power(1.0-CPR_t, 1.0/12.0));
+            double remaining = PV_t[i] - SP_t - PP_t;
+            double c_t = MP_t + PP_t;
+            PV_t.push_back(remaining);
+            cashflow.push_back(c_t);
+        }
+        cashFlowMatrix.push_back(cashflow);
+    }
+    //bisection with 0.01 precision on price
+    double x_up = 0.1;
+    double x_down = -0.1;
+    double x = 0;
+    bool solved = false;
+    while(!solved){
+        double payoffSum = 0;
+        for(int path = 0; path < cashFlowMatrix.size(); path++){
+            double priceHere = 0;
+            vector<double> cfHere = cashFlowMatrix[path];
+            for(int i = 1; i < cfHere.size(); i++){
+                double r_sum = 0;
+                for(int j = 1; j < i + 1; j++){
+                    r_sum += (interest_rates[path][j]+x);
+                }
+                double discounted_cf = cfHere[i]*exp(-delta*r_sum);
+                priceHere += discounted_cf;
+            }
+            payoffSum += priceHere;
+        }
+        double computed_price = payoffSum / num_paths;
+        if(computed_price > marketPrice){
+            x_down = x;
+            x = (x_up - x_down)/2.0 + x_down;
+        }
+        else if(computed_price < marketPrice){
+            x_up = x;
+            x = (x_up - x_down)/2.0 + x_down;
+        }
+        double diff = computed_price - marketPrice;
+        if((diff < 0.01 && diff > 0)||(diff > -0.01 && diff < 0)){
+            solved = true;
+        }
+    }
+    
+    return x;
+}
+
+double priceMBSNumerixWithOAS(unsigned int T_years, double loan_amount, double wac, double r0, double kappa, double r_bar, double sigma, int num_paths, double oasSpread){
+    unsigned int numMonths = T_years * 12;
+    double monthlyMortgageRate = wac / 12.0;
+    double delta = 1/12.0;
+    
+    vector<vector<double>> interest_rates = ratesCIR(r0, kappa, r_bar, sigma, num_paths, numMonths, T_years);
+    vector<vector<double>> cashFlowMatrix;
+    for(int j = 0; j < num_paths; j++){
+        vector<double> ir_here = interest_rates[j];
+        vector<double> cashflow{0};
+        
+        vector<double> PV_t{loan_amount};
+        int currMonth = 0;
+        for(int i = 0; i < numMonths; i++){
+            currMonth++;
+            if(currMonth == 13){
+                currMonth = 1;
+            }
+            if(PV_t[i] <= 0){
+                break;
+            }
+            double IP_t = PV_t[i]*monthlyMortgageRate;
+            double MP_t = PV_t[i]*monthlyMortgageRate/(1.0-1.0/power(1.0+monthlyMortgageRate, numMonths - i));
+            double SP_t = MP_t - IP_t;
+            double r_tenyear = 0;
+            double bondPrice = ZCBClosedFormCIR(ir_here[i], r_bar, sigma, kappa, 1, 0, 10);
+            r_tenyear = -1.0/10.0*log(bondPrice);
+            double CPR_t = cprNumerixCIR(r_tenyear, wac, loan_amount, PV_t[i], i+1, currMonth);
+            double PP_t = (PV_t[i] - SP_t)*(1.0-power(1.0-CPR_t, 1.0/12.0));
+            double remaining = PV_t[i] - SP_t - PP_t;
+            double c_t = MP_t + PP_t;
+            PV_t.push_back(remaining);
+            cashflow.push_back(c_t);
+        }
+        cashFlowMatrix.push_back(cashflow);
+    }
+
+    double payoffSum = 0;
+    for(int path = 0; path < cashFlowMatrix.size(); path++){
+        double priceHere = 0;
+        vector<double> cfHere = cashFlowMatrix[path];
+        for(int i = 1; i < cfHere.size(); i++){
+            double r_sum = 0;
+            for(int j = 1; j < i + 1; j++){
+                r_sum += (interest_rates[path][j]+oasSpread);
+            }
+            double discounted_cf = cfHere[i]*exp(-delta*r_sum);
+            priceHere += discounted_cf;
+        }
+        payoffSum += priceHere;
+    }
+    double computed_price = payoffSum / num_paths;
+    
+    return computed_price;
+}
 
 
 double cprNumerixCIR(double r, double mort_rate, double pv0, double pv_tMinus1, unsigned int curr_period, unsigned int month){
@@ -115,6 +244,8 @@ double cprNumerixCIR(double r, double mort_rate, double pv0, double pv_tMinus1, 
     double cpr = RI_t*BU_t*SG_t*SY_t;
     return cpr;
 }
+
+
 
 
 vector<vector<double>> ratesCIR(double r0, double kappa, double r_bar, double sigma, int num_paths, int num_steps, int T_years){

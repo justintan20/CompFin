@@ -20,9 +20,9 @@ int main(int argc, const char * argv[]) {
     int m = 10000;
     //a
     double price = priceMBSNumerix(T_years, loan, wac, r0, kappa, r_bar, sigma, m);
-    
+
     cout << price << endl;
-    
+
     vector<double> kappa_range;
     vector<double> r_bar_range;
     vector<double> sigma_range;
@@ -56,9 +56,17 @@ int main(int argc, const char * argv[]) {
     
     cout << "\nProblem 2" << endl;
     double marketPrice = 110000;
+    double x = oas(T_years, loan, wac, r0, kappa, r_bar, sigma, m, marketPrice);
+    cout << "Option Adjusted Spread: " << x << endl;
     
-    
-    
+    cout << "\nProblem 3" << endl;
+    double y = 0.0005;
+    double p_plus = priceMBSNumerixWithOAS(T_years, loan, wac, r0, kappa, r_bar, sigma, m, x+y);
+    double p_minus = priceMBSNumerixWithOAS(T_years, loan, wac, r0, kappa, r_bar, sigma, m, x-y);
+    double duration = (p_minus - p_plus)/(2.0*y*marketPrice);
+    double convexity = (p_plus+p_minus-2.0*marketPrice)/(2.0*marketPrice*y*y);
+    cout << "OAS-Duration: " << duration << endl;
+    cout << "OAS-Convexity: " << convexity << endl;
     
     
     return 0;
