@@ -45,7 +45,7 @@ int main(int argc, const char * argv[]) {
     //d
     S = 4;
     steps = 128;
-    paths = 10000;
+    paths = 1000;
     for(int i = 0; i < T_i.size(); i++){
         T_i[i] -= T;
     }

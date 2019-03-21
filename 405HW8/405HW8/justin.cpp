@@ -99,7 +99,7 @@ double callCouponBondVasicek(double r0, double r_bar, double sigma, double kappa
         for(int j = t*steps; j < steps; j++){
             double curr_time = j * delta;
             if(curr_time == T){
-                price_bond = couponBondVasicek(r_before, r_bar, sigma, kappa, faceValue, T, S, c_i, T_i, steps, paths);
+                price_bond = couponBondVasicek(r_before, r_bar, sigma, kappa, faceValue, 0, S - T, c_i, T_i, steps, paths);
                 break;
             }
             double r_after = r_before + kappa*(r_bar - r_before)*delta + sigma*sqrt(delta)*z[zIndex];
