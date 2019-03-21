@@ -165,42 +165,42 @@ double calcMean(const vector<double>& v){
 
 //greeks
 double delta(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = binomEuroCallA(r, sigma, s_0, k, t, 500);
+    double epsilon = 0.0001;
+    double c1 = binomEuroCallA(r, sigma, s_0 - epsilon, k, t, 500);
     double c2 = binomEuroCallA(r, sigma, s_0 + epsilon, k, t, 500);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2/epsilon;
     return result;
 }
 
 double vega(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = binomEuroCallA(r, sigma, s_0, k, t, 500);
+    double epsilon = 0.0001;
+    double c1 = binomEuroCallA(r, sigma - epsilon, s_0, k, t, 500);
     double c2 = binomEuroCallA(r, sigma + epsilon, s_0, k, t, 500);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2/epsilon;
     return result;
 }
 
 double theta(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = binomEuroCallA(r, sigma, s_0, k, t, 500);
+    double epsilon = 0.0001;
+    double c1 = binomEuroCallA(r, sigma, s_0, k, t - epsilon, 500);
     double c2 = binomEuroCallA(r, sigma, s_0, k, t + epsilon, 500);
-    double result = (c2 - c1)/(-1)*epsilon;
+    double result = (c2 - c1)/(-1.0)/2.0/epsilon;
     return result;
 }
 
 double rho(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.0001;
-    double c1 = binomEuroCallA(r, sigma, s_0, k, t, 500);
+    double epsilon = 0.00001;
+    double c1 = binomEuroCallA(r - epsilon, sigma, s_0, k, t, 500);
     double c2 = binomEuroCallA(r + epsilon, sigma, s_0, k, t, 500);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2/epsilon;
     return result;
 }
 
 double gamma(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double delta1 = delta(r, t, sigma, s_0, k);
+    double epsilon = 0.0001;
+    double delta1 = delta(r, t, sigma, s_0 - epsilon, k);
     double delta2 = delta(r, t, sigma, s_0 + epsilon, k);
-    double result = (delta2 - delta1)/epsilon;
+    double result = (delta2 - delta1)/2/epsilon;
     return result;
 }
 
