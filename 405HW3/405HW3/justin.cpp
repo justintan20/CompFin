@@ -165,42 +165,42 @@ double cdfNorm(double z){
 
 //greeks
 double delta(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = euroCallVR(r, t, sigma, s_0, k,4000,10000);
+    double epsilon = 0.0001;
+    double c1 = euroCallVR(r, t, sigma, s_0 - epsilon, k,4000,10000);
     double c2 = euroCallVR(r, t, sigma, s_0 + epsilon, k,4000,10000);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2.0/epsilon;
     return result;
 }
 
 double vega(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = euroCallVR(r, t, sigma, s_0, k,4000,10000);
+    double epsilon = 0.0001;
+    double c1 = euroCallVR(r, t, sigma - epsilon, s_0, k,4000,10000);
     double c2 = euroCallVR(r, t, sigma + epsilon, s_0, k,4000,10000);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2.0/epsilon;
     return result;
 }
 
 double theta(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double c1 = euroCallVR(r, t, sigma, s_0, k,4000,10000);
+    double epsilon = 0.0001;
+    double c1 = euroCallVR(r, t - epsilon, sigma, s_0, k,4000,10000);
     double c2 = euroCallVR(r, t + epsilon, sigma, s_0, k,4000,10000);
-    double result = (c2 - c1)/(-1)*epsilon;
+    double result = (c2 - c1)/(-1.0)/2.0/epsilon;
     return result;
 }
 
 double rho(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.0001;
-    double c1 = euroCallVR(r, t, sigma, s_0, k,4000,10000);
+    double epsilon = 0.00001;
+    double c1 = euroCallVR(r-epsilon, t, sigma, s_0, k,4000,10000);
     double c2 = euroCallVR(r+epsilon, t, sigma, s_0, k,4000,10000);
-    double result = (c2 - c1)/epsilon;
+    double result = (c2 - c1)/2/epsilon;
     return result;
 }
 
 double gamma(double r, double t, double sigma, double s_0, double k){
-    double epsilon = 0.001;
-    double delta1 = delta(r, t, sigma, s_0, k);
+    double epsilon = 0.0001;
+    double delta1 = delta(r, t, sigma, s_0-epsilon, k);
     double delta2 = delta(r, t, sigma, s_0 + epsilon, k);
-    double result = (delta2 - delta1)/epsilon;
+    double result = (delta2 - delta1)/2/epsilon;
     return result;
 }
 
